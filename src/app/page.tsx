@@ -1,9 +1,10 @@
 'use client'
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const CameraBlueScreen = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [blueDetected, setBlueDetected] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -33,6 +34,9 @@ const CameraBlueScreen = () => {
       const imageData = ctx.getImageData(0, 0, w, h);
       const pixels = imageData.data;
 
+      let bluePixelCount = 0;
+      const totalPixels = w * h;
+
       //skip pixels for efficienct
       for (let i = 0; i < pixels.length; i += 4) {
         const r = pixels[i];
@@ -47,8 +51,12 @@ const CameraBlueScreen = () => {
           pixels[i] = 0;
           pixels[i + 1] = 0;
           pixels[i + 2] = 0;
+        } else {
+          bluePixelCount++;
         }
       }
+
+      setBlueDetected(bluePixelCount > totalPixels * 0.01);
 
       //expand blue for edge enhancement
       for (let i = 0; i < pixels.length; i += 4) {
@@ -80,6 +88,11 @@ const CameraBlueScreen = () => {
     <div className="fixed inset-0 flex justify-center items-center bg-black">
       <video ref={videoRef} className="hidden" playsInline />
       <canvas ref={canvasRef} className="w-full h-full" />
+      {blueDetected && (
+        <div className="absolute top-10 text-3xl text-white font-bold bg-blue-500 px-4 py-2 rounded-lg">
+          Blue Detected
+        </div>
+      )}s
     </div>
   );
 };
